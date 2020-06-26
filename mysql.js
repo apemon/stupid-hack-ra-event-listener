@@ -1,4 +1,5 @@
 const mysql = require("mysql");
+const util = require('util');
 
 // config
 const config = {
@@ -8,6 +9,17 @@ const config = {
   database: process.env.MYSQL_DATABASE,
 };
 
-const conn = mysql.createConnection(config);
+const conn = () => {
+  const connection  = mysql.createConnection(config);
+  return {
+    query( sql, args ) {
+      return util.promisify( connection.query )
+        .call( connection, sql, args );
+    },
+    close() {
+      return util.promisify( connection.end ).call( connection );
+    }
+  };
+}
 
-module.exports = conn;
+module.exports = conn();
